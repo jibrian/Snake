@@ -1,29 +1,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-	
-	<style>
-	
-	#mycanvas {
-		border: 1px solid black;
-	}
+<style>	
+#mycanvas {
+	border: 1px solid black;
+}
 
-	canvas,
-	body,
-	html {
-		margin: 0;
-		padding: 0;
-	}
-
-
-	</style>
+canvas,
+body,
+html {
+	margin: 0;
+	padding: 0;
+}
+</style>
 </head>
 <body>
-
 	<canvas id='mycanvas' width='500' height='500'></canvas>
-  
-
-
 <script>
 'use strict'
 
@@ -40,13 +32,7 @@ function Snake(canvas, options) {
 	this.canvas = document.getElementById(canvas);
 	this.ctx = this.canvas.getContext('2d');
 	this.snake = [];
-
-	this.h = function() {
-		return window.innerHeight;
-	}
-	this.w = function() {
-		return window.innerWidth;
-	}
+	this.food = {};
 
 	window.addEventListener('load', this, false);
 }
@@ -55,13 +41,20 @@ Snake.fn = Snake.prototype;
 
 Snake.fn.init = function() {
 	this.setCanvas();
-	this.paintCanvas();
 	this.initSnake();
-	this.paintSnake();
+	this.initFood();
 }
 
 Snake.fn.handleEvent = function() {
 	this.init();
+}
+
+Snake.fn.h = function() {
+	return window.innerHeight;
+}
+
+Snake.fn.w = function() {
+	return window.innerWidth;
 }
 
 Snake.fn.setCanvas = function() {
@@ -84,30 +77,37 @@ Snake.fn.initSnake = function() {
 	}
 }
 
+Snake.fn.initFood = function() {
+	this.food = {
+		x: Math.round(Math.random() * (this.w() - this.options.rectSize) / this.options.rectSize),
+		y: Math.round(Math.random() * (this.h() - this.options.rectSize) / this.options.rectSize)
+	};
+}
+
 Snake.fn.paintSnake = function() {
 	var size = this.options.rectSize;
+	var s = this.snake;
 
 	// take coordinate and paint rect
 	for (var i = 0; i < this.snake.length; i++) {
-		var s = this.snake[i];
-		
 		if (i === 0) {
 			this.ctx.fillStyle = 'red';
 		} else {
 			this.ctx.fillStyle = this.options.snakeColor;	
 		}
 
-		this.ctx.fillRect(s.x * size, s.y * size, size, size);
+		this.ctx.fillRect(s[i].x * size, s[i].y * size, size, size);
 	}
-
 }
 
 var dir = 'right';
+var over = 0;
 
 Snake.fn.updateSnake = function() {
 	// get head coordinates
-	var headX = this.snake[0].x;
-	var headY = this.snake[0].y;
+	var s = this.snake;
+	var headX = s[0].x;
+	var headY = s[0].y;
 	var o = this.options;
 
 	document.onkeydown = function(e) {
@@ -151,10 +151,25 @@ Snake.fn.updateSnake = function() {
 	}
 
 	// ? this is the money
-	var tail = this.snake.pop();
+	var tail = s.pop();
     tail.x = headX;
     tail.y = headY;
-    this.snake.unshift(tail);
+    s.unshift(tail);
+
+    var f = this.food;
+
+    // collision
+    for (var j = 1; j < s.length; j++) {
+    	if (headX === s[j].x && headY === s[j].y) {
+            alert('asd')
+        }
+
+        if (headX === f.x && headY === f.y) {
+        	this.initFood();
+        }
+    } 
+
+   
 
 }
 
@@ -162,13 +177,29 @@ Snake.fn.draw = function() {
 	this.paintCanvas();
 	this.paintSnake();
 	this.updateSnake();
+	this.paintFood();
 }
+
+Snake.fn.paintFood = function() {
+	var size = this.options.rectSize;
+	this.ctx.fillStyle = 'white';
+	this.ctx.fillRect(this.food.x * size, this.food.y * size, size, size);
+}
+
+
+
+
+
+
+
+
 
 var snake = new Snake('mycanvas');
 
 setInterval(function() {
 	snake.draw();
 }, snake.options.speed);
+
 
 
 
