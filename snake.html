@@ -2,20 +2,13 @@
 <html>
 <head>
 <style>	
-#mycanvas {
-	border: 1px solid black;
-}
+body {padding: 0; margin: 0; overflow: hidden;}
 
-canvas,
-body,
-html {
-	margin: 0;
-	padding: 0;
-}
+
 </style>
 </head>
 <body>
-	<canvas id='mycanvas' width='500' height='500'></canvas>
+	<canvas id='mycanvas'></canvas>
 <script>
 'use strict'
 
@@ -28,11 +21,11 @@ function Snake(canvas, options) {
 		speed: 40,
 	};
 
-	this.options = options || defaults;
 	this.canvas = document.getElementById(canvas);
 	this.ctx = this.canvas.getContext('2d');
 	this.snake = [];
 	this.food = {};
+	this.options = options || defaults;
 
 	window.addEventListener('load', this, false);
 }
@@ -41,8 +34,11 @@ Snake.fn = Snake.prototype;
 
 Snake.fn.init = function() {
 	this.setCanvas();
+	this.paintCanvas();
 	this.initSnake();
+	this.paintSnake();
 	this.initFood();
+	this.paintFood();
 }
 
 Snake.fn.handleEvent = function() {
@@ -71,7 +67,6 @@ Snake.fn.initSnake = function() {
 	var len = this.options.startLength;
 	var s = this.snake;
 
-	// load snake with coordinate objects from head to tail
 	for (var i = len - 1; i >= 0; i--) {
 		s.push({x: i, y: 0});
 	}
@@ -90,14 +85,15 @@ Snake.fn.paintSnake = function() {
 
 	// take coordinate and paint rect
 	for (var i = 0; i < this.snake.length; i++) {
-		if (i === 0) {
-			this.ctx.fillStyle = 'red';
-		} else {
-			this.ctx.fillStyle = this.options.snakeColor;	
-		}
-
+		this.ctx.fillStyle = this.options.snakeColor;	
 		this.ctx.fillRect(s[i].x * size, s[i].y * size, size, size);
 	}
+}
+
+Snake.fn.paintFood = function() {
+	var size = this.options.rectSize;
+	this.ctx.fillStyle = 'white';
+	this.ctx.fillRect(this.food.x * size, this.food.y * size, size, size);
 }
 
 var dir = 'right';
@@ -109,23 +105,24 @@ Snake.fn.updateSnake = function() {
 	var headX = s[0].x;
 	var headY = s[0].y;
 	var o = this.options;
+	var size = this.options.rectSize;
 
 	document.onkeydown = function(e) {
-		var key = e.keyIdentifier;
+		var key = e.keyCode;
 
-		if(key === 'Left' && dir !== "right") {
+		if(key === 37 && dir !== "right") {
         	setTimeout(function() {
             	dir = "left"; 
         	}, o.speed);
-      	} else if(key === 'Up' && dir !== "down") {
+      	} else if(key === 38 && dir !== "down") {
         	setTimeout(function() {
             	dir = "up"; 
         	}, o.speed)
-      	} else if(key === 'Right' && dir !== "left") {
+      	} else if(key === 39 && dir !== "left") {
         	setTimeout(function() {
             	dir = "right"; 
         	}, o.speed)
-      	} else if(key === 'Down' && dir !== "up") {
+      	} else if(key === 40 && dir !== "up") {
         	setTimeout(function() {
             	dir = "down"; 
         	}, o.speed)
@@ -150,45 +147,53 @@ Snake.fn.updateSnake = function() {
 			break;
 	}
 
-	// ? this is the money
+	this.ctx.fillStyle = 'black';
+	this.ctx.fillRect(s[s.length - 1 ].x * size, s[s.length - 1].y * size, size, size);
+
+	// takes last square and puts it in front
 	var tail = s.pop();
     tail.x = headX;
     tail.y = headY;
     s.unshift(tail);
+
+	this.ctx.fillStyle = this.options.snakeColor;
+    this.ctx.fillRect(s[0].x * size, s[0].y * size, size, size);
 
     var f = this.food;
 
     // collision
     for (var j = 1; j < s.length; j++) {
     	if (headX === s[j].x && headY === s[j].y) {
-            alert('asd')
-        }
-
-        if (headX === f.x && headY === f.y) {
-        	this.initFood();
+    		clearInterval(start);
         }
     } 
 
-   
+    if (headX === f.x && headY === f.y) {
+        this.initFood();
+        var tail = {x: headX, y: headY};
+      	s.unshift(tail);  
+    }
 
+    if (headX >= this.w() / o.rectSize || headX <= -1 || headY >= this.h() / o.rectSize || headY <= -1) {
+
+    	if (over === 0) {
+    	clearInterval(start);
+    	}
+    	over++;
+    }
 }
 
-Snake.fn.draw = function() {
-	this.paintCanvas();
-	this.paintSnake();
+
+
+
+
+
+Snake.fn.paint = function() {
+	// this.paintCanvas();
 	this.updateSnake();
+	// this.paintSnake();
 	this.paintFood();
 }
-
-Snake.fn.paintFood = function() {
-	var size = this.options.rectSize;
-	this.ctx.fillStyle = 'white';
-	this.ctx.fillRect(this.food.x * size, this.food.y * size, size, size);
-}
-
-
-
-
 
 
 
@@ -196,9 +201,10 @@ Snake.fn.paintFood = function() {
 
 var snake = new Snake('mycanvas');
 
-setInterval(function() {
-	snake.draw();
+var start = setInterval(function() {
+	snake.paint();
 }, snake.options.speed);
+
 
 
 
