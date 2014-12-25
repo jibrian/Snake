@@ -17,8 +17,9 @@ function Snake(canvas, options) {
 		canvasColor: 'black',
 		snakeColor: 'white',
 		startLength: 10,
-		rectSize: 10,
+		rectSize: 15,
 		speed: 40,
+		dir: 'right',
 	};
 
 	this.canvas = document.getElementById(canvas);
@@ -26,23 +27,24 @@ function Snake(canvas, options) {
 	this.snake = [];
 	this.food = {};
 	this.options = options || defaults;
+	this.dir = this.options.dir || defaults.dir;
+	this.points = 0;
 
 	window.addEventListener('load', this, false);
 }
 
 Snake.fn = Snake.prototype;
 
+Snake.fn.handleEvent = function() {
+	this.init();
+}
+
 Snake.fn.init = function() {
-	this.setCanvas();
-	this.paintCanvas();
+	this.initCanvas();
 	this.initSnake();
 	this.paintSnake();
 	this.initFood();
 	this.paintFood();
-}
-
-Snake.fn.handleEvent = function() {
-	this.init();
 }
 
 Snake.fn.h = function() {
@@ -53,12 +55,9 @@ Snake.fn.w = function() {
 	return window.innerWidth;
 }
 
-Snake.fn.setCanvas = function() {
+Snake.fn.initCanvas = function() {
 	this.canvas.height = this.h();
 	this.canvas.width = this.w();
-}
-
-Snake.fn.paintCanvas = function() {
 	this.ctx.fillStyle = this.options.canvasColor;
 	this.ctx.fillRect(0, 0, this.w(), this.h());
 }
@@ -66,7 +65,6 @@ Snake.fn.paintCanvas = function() {
 Snake.fn.initSnake = function() {
 	var len = this.options.startLength;
 	var s = this.snake;
-
 	for (var i = len - 1; i >= 0; i--) {
 		s.push({x: i, y: 0});
 	}
@@ -83,7 +81,6 @@ Snake.fn.paintSnake = function() {
 	var size = this.options.rectSize;
 	var s = this.snake;
 
-	// take coordinate and paint rect
 	for (var i = 0; i < this.snake.length; i++) {
 		this.ctx.fillStyle = this.options.snakeColor;	
 		this.ctx.fillRect(s[i].x * size, s[i].y * size, size, size);
@@ -96,43 +93,42 @@ Snake.fn.paintFood = function() {
 	this.ctx.fillRect(this.food.x * size, this.food.y * size, size, size);
 }
 
-var dir = 'right';
-var over = 0;
-
-Snake.fn.updateSnake = function() {
-	// get head coordinates
+Snake.fn.repaintSnake = function() {
 	var s = this.snake;
 	var headX = s[0].x;
 	var headY = s[0].y;
 	var o = this.options;
 	var size = this.options.rectSize;
+	var ctx = this.ctx;
+	var _this = this;
 
 	document.onkeydown = function(e) {
 		var key = e.keyCode;
 
-		if(key === 37 && dir !== "right") {
+		if (key === 37 || key === 38 || key === 39 || key === 40) {
+			e.preventDefault();
+		}
+
+		if(key === 37 && _this.dir !== "right") {
         	setTimeout(function() {
-            	dir = "left"; 
+            	_this.dir = "left"; 
         	}, o.speed);
-      	} else if(key === 38 && dir !== "down") {
+      	} else if(key === 38 && _this.dir !== "down") {
         	setTimeout(function() {
-            	dir = "up"; 
+            	_this.dir = "up"; 
         	}, o.speed)
-      	} else if(key === 39 && dir !== "left") {
+      	} else if(key === 39 && _this.dir !== "left") {
         	setTimeout(function() {
-            	dir = "right"; 
+            	_this.dir = "right"; 
         	}, o.speed)
-      	} else if(key === 40 && dir !== "up") {
+      	} else if(key === 40 && _this.dir !== "up") {
         	setTimeout(function() {
-            	dir = "down"; 
+            	_this.dir = "down"; 
         	}, o.speed)
       	}
-
-      	e.preventDefault();
 	}
 
-	// based on key direction, add to coordinates 
-	switch (dir) {
+	switch (this.dir) {
 		case 'right':
 			headX++;
 			break;
@@ -147,56 +143,53 @@ Snake.fn.updateSnake = function() {
 			break;
 	}
 
-	this.ctx.fillStyle = 'black';
-	this.ctx.fillRect(s[s.length - 1 ].x * size, s[s.length - 1].y * size, size, size);
+	// erase tail
+	ctx.fillStyle = o.canvasColor;
+	ctx.fillRect(s[s.length - 1 ].x * size, s[s.length - 1].y * size, size, size);
 
-	// takes last square and puts it in front
 	var tail = s.pop();
     tail.x = headX;
     tail.y = headY;
     s.unshift(tail);
 
-	this.ctx.fillStyle = this.options.snakeColor;
-    this.ctx.fillRect(s[0].x * size, s[0].y * size, size, size);
+    // add tail to head
+	ctx.fillStyle = o.snakeColor;
+    ctx.fillRect(s[0].x * size, s[0].y * size, size, size);
 
     var f = this.food;
 
-    // collision
+    // self collision
     for (var j = 1; j < s.length; j++) {
     	if (headX === s[j].x && headY === s[j].y) {
-    		clearInterval(start);
+    		this.gameOver();
         }
     } 
 
+    // food collision;
     if (headX === f.x && headY === f.y) {
-        this.initFood();
         var tail = {x: headX, y: headY};
-      	s.unshift(tail);  
+
+        this.initFood();
+      	s.unshift(tail);
+      	this.points++; 
+      	if (this.o.speed >= 20) {
+      		this.options.speed--; 
+      	}
     }
 
     if (headX >= this.w() / o.rectSize || headX <= -1 || headY >= this.h() / o.rectSize || headY <= -1) {
-
-    	if (over === 0) {
-    	clearInterval(start);
-    	}
-    	over++;
+    	this.gameOver();
     }
 }
 
-
-
-
-
-
 Snake.fn.paint = function() {
-	// this.paintCanvas();
-	this.updateSnake();
-	// this.paintSnake();
+	this.repaintSnake();
 	this.paintFood();
 }
 
-
-
+Snake.fn.gameOver = function() {
+	clearInterval(start);
+}
 
 
 var snake = new Snake('mycanvas');
