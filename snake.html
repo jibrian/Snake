@@ -14,6 +14,9 @@ body {
 #menu {
 	color: white;
 	font-size: 40px;
+	height: 100%;
+	width: 100%;
+	background: black;
 	position: absolute;
 	top: 100px; right: 0; left: 0;
 	text-align: center;
@@ -23,11 +26,11 @@ body {
 </style>
 </head>
 <body>
-	<canvas id='mycanvas'></canvas>
 	<div id='menu'>
 		<p id='scoreboard'></p>
 		<p id='start'>Start</p>
 	</div>
+	<canvas id='mycanvas'></canvas>
 <script>
 'use strict'
 function Snake(options) {
@@ -37,6 +40,7 @@ function Snake(options) {
 		snakeColor: 'white',
 		speed: 40,
 		startLength: 10,
+		wallCollision: false,
 	};
 
 	this.canvas = document.getElementById('mycanvas');
@@ -48,7 +52,7 @@ function Snake(options) {
 	this.snake = [];
 	this.food = {};
 	this.options = options || defaults;
-	this.dir = this.options.dir || defaults.dir;
+	this.dir = 'right';
 	this.score = 0;
 
 	window.addEventListener('load', this, false);
@@ -58,26 +62,35 @@ Snake.fn = Snake.prototype;
 
 Snake.fn.handleEvent = function() {
 	this.init();
-}
+};
 
 Snake.fn.init = function() {
-	this.initCanvas();
+	var _this = this;
+
+	this.paintCanvas();
 	this.initSnake();
 	this.paintSnake();
-	this.initFood();
 	this.paintFood();
 	this.initLoop();
-}
+
+	this.start.addEventListener('click', function() {
+		_this.reset();
+	}, false);
+	
+	window.addEventListener('keydown', function(e) {
+		_this.control(e);
+	})
+};
 
 Snake.fn.h = function() {
 	return window.innerHeight;
-}
+};
 
 Snake.fn.w = function() {
 	return window.innerWidth;
-}
+};
 
-Snake.fn.initCanvas = function() {
+Snake.fn.paintCanvas = function() {
 	this.canvas.height = this.h();
 	this.canvas.width = this.w();
 	this.ctx.fillStyle = this.options.canvasColor;
@@ -105,31 +118,22 @@ Snake.fn.paintSnake = function() {
 	}
 }
 
-Snake.fn.initFood = function() {
-	this.food = {
-		x: Math.round(Math.random() * (this.w() - this.options.rectSize) / this.options.rectSize),
-		y: Math.round(Math.random() * (this.h() - this.options.rectSize) / this.options.rectSize)
-	};
-}
-
 Snake.fn.paintFood = function() {
 	var size = this.options.rectSize;
+	
+	this.food = {
+		x: Math.round(Math.random() * (this.w() - size) / size),
+		y: Math.round(Math.random() * (this.h() - size) / size)
+	};
+
 	this.ctx.fillStyle = 'white';
 	this.ctx.fillRect(this.food.x * size, this.food.y * size, size, size);
 }
 
-Snake.fn.repaintSnake = function() {
-	var s = this.snake;
-	var o = this.options;
-	var f = this.food;
-	var size = this.options.rectSize;
-	var ctx = this.ctx;
-	var headX = s[0].x;
-	var headY = s[0].y;
-	var _this = this;
-
-	document.onkeydown = function(e) {
+Snake.fn.control = function(e) {
 		var key = e.keyCode;
+		var _this = this;
+		var o = this.options;
 
 		if (key === 37 || key === 38 || key === 39 || key === 40) {
 			e.preventDefault();
@@ -152,7 +156,17 @@ Snake.fn.repaintSnake = function() {
             	_this.dir = "down"; 
         	}, o.speed)
       	}
-	}
+}
+
+Snake.fn.repaintSnake = function() {
+	var s = this.snake;
+	var o = this.options;
+	var f = this.food;
+	var size = this.options.rectSize;
+	var ctx = this.ctx;
+	var headX = s[0].x;
+	var headY = s[0].y;
+	var _this = this;
 
 	switch (this.dir) {
 		case 'right':
@@ -182,6 +196,9 @@ Snake.fn.repaintSnake = function() {
 	ctx.fillStyle = o.snakeColor;
     ctx.fillRect(s[0].x * size, s[0].y * size, size, size);
 
+    ctx.fillStyle = o.canvasColor;
+	ctx.fillRect(s[s.length - 1].x * size, s[s.length - 1].y * size, size, size);
+
     // self collision
     var j = 1
     for (; j < s.length; j++) {
@@ -194,23 +211,58 @@ Snake.fn.repaintSnake = function() {
     if (headX === f.x && headY === f.y) {
         var tail = {x: headX, y: headY};
 
-        this.initFood();
         this.paintFood();
       	s.unshift(tail);
       	this.score++; 
+
+      	if (o.speed >= 25) {
+      		o.speed--;	
+      	}
+
+    	clearInterval(this.loop);
+      	this.loop = setInterval(function() {
+			_this.repaintSnake();
+		}, _this.options.speed); 
     }
 
-    // wall collision
-    if (headX >= this.w() / o.rectSize || headX <= -1 || headY >= this.h() / o.rectSize || headY <= -1) {
-    	this.gameOver();
+    if (o.wallCollision) {
+    	if (headX >= this.w() / size || headX <= -1 || headY >= this.h() / size || headY <= -1) {
+    		this.gameOver();
+    	}
+	} else {
+    	if (headX >= this.w() / size) {
+    		var tail = s.pop();
+    		tail.x = 0;
+    		tail.y = headY;
+    		s.unshift(tail);
+    	}
+	
+	    	if (headY >= this.h() / size) {
+	    		var tail = s.pop();
+	    		tail.x = headX;
+	    		tail.y = 0;
+	    		s.unshift(tail);
+	    	}
+	
+	    	if (headY <= -1) {
+	    		var tail = s.pop();
+	    		tail.x = headX;
+	    		tail.y = this.h() / size;
+	    		s.unshift(tail);
+	    	}
+	
+	    	if (headX <= -1) {
+	    		var tail = s.pop();
+	    		tail.x = this.w() / size;
+	    		tail.y = headY;
+	    		s.unshift(tail);
+    	}
     }
 }
 
 Snake.fn.initLoop = function() {
 	var _this = this;
-	this.dir = 'right';
-	this.score = 0;
-	this.menu.style.zIndex = -1;
+
 	clearInterval(this.loop)
 	this.loop = setInterval(function() {
 		_this.repaintSnake();
@@ -218,23 +270,21 @@ Snake.fn.initLoop = function() {
 }
 
 Snake.fn.reset = function() {
-	var _this = this;
-
-	this.start.addEventListener('click', function() {
-		_this.initCanvas();
-		_this.initSnake();
-		_this.paintSnake();
-		_this.paintFood();
-		_this.initLoop();
-	}, false);
-
+	this.dir = 'right';
+	this.score = 0;
+	this.options.speed = 40;
+	this.menu.style.zIndex = -1;
+	this.paintCanvas();
+	this.initSnake();
+	this.paintSnake();
+	this.paintFood();
+	this.initLoop();
 }
 
 Snake.fn.gameOver = function() {
 	clearInterval(this.loop);
 	this.scoreboard.innerHTML = this.score;
 	this.menu.style.zIndex = 999;
-	this.reset();
 }
 
 var snake = new Snake();
