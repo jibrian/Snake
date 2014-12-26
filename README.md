@@ -1,4 +1,4 @@
 Snake
 =====
 
-Class snake game in canvas.
+Classic snake game in canvas.
