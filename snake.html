@@ -47,7 +47,6 @@ function Snake(options) {
 	this.menu = document.getElementById('menu');
 	this.scoreboard = document.getElementById('scoreboard');
 	this.start = document.getElementById('start');
-
 	this.ctx = this.canvas.getContext('2d');
 	this.snake = [];
 	this.food = {};
@@ -79,7 +78,7 @@ Snake.fn.init = function() {
 	
 	window.addEventListener('keydown', function(e) {
 		_this.control(e);
-	})
+	}, false);
 };
 
 Snake.fn.h = function() {
@@ -95,7 +94,7 @@ Snake.fn.paintCanvas = function() {
 	this.canvas.width = this.w();
 	this.ctx.fillStyle = this.options.canvasColor;
 	this.ctx.fillRect(0, 0, this.w(), this.h());
-}
+};
 
 Snake.fn.initSnake = function() {
 	var len = this.options.startLength;
@@ -104,7 +103,7 @@ Snake.fn.initSnake = function() {
 	for (; i >= 0; i--) {
 		s.push({x: i, y: 0});
 	}
-}
+};
 
 Snake.fn.paintSnake = function() {
 	var size = this.options.rectSize;
@@ -116,7 +115,7 @@ Snake.fn.paintSnake = function() {
 		this.ctx.fillStyle = this.options.snakeColor;	
 		this.ctx.fillRect(s[i].x * size, s[i].y * size, size, size);
 	}
-}
+};
 
 Snake.fn.paintFood = function() {
 	var size = this.options.rectSize;
@@ -128,137 +127,138 @@ Snake.fn.paintFood = function() {
 
 	this.ctx.fillStyle = 'white';
 	this.ctx.fillRect(this.food.x * size, this.food.y * size, size, size);
-}
+};
 
 Snake.fn.control = function(e) {
-		var key = e.keyCode;
-		var _this = this;
-		var o = this.options;
+	var key = e.keyCode,
+	    _this = this;
+	    o = this.options;
 
-		if (key === 37 || key === 38 || key === 39 || key === 40) {
-			e.preventDefault();
-		}
+	if (key === 37 || key === 38 || key === 39 || key === 40) {
+	    e.preventDefault();
+	}
 
-		if(key === 37 && _this.dir !== "right") {
-        	setTimeout(function() {
-            	_this.dir = "left"; 
-        	}, o.speed);
+	if(key === 37 && _this.dir !== "right") {
+            setTimeout(function() {
+                _this.dir = "left"; 
+            }, o.speed);
       	} else if(key === 38 && _this.dir !== "down") {
-        	setTimeout(function() {
-            	_this.dir = "up"; 
-        	}, o.speed)
+            setTimeout(function() {
+                _this.dir = "up"; 
+            }, o.speed)
       	} else if(key === 39 && _this.dir !== "left") {
-        	setTimeout(function() {
-            	_this.dir = "right"; 
-        	}, o.speed)
+            setTimeout(function() {
+                _this.dir = "right"; 
+            }, o.speed)
       	} else if(key === 40 && _this.dir !== "up") {
-        	setTimeout(function() {
-            	_this.dir = "down"; 
-        	}, o.speed)
+            setTimeout(function() {
+                _this.dir = "down"; 
+            }, o.speed)
       	}
-}
+};
 
 Snake.fn.repaintSnake = function() {
-	var s = this.snake;
-	var o = this.options;
-	var f = this.food;
-	var size = this.options.rectSize;
-	var ctx = this.ctx;
-	var headX = s[0].x;
-	var headY = s[0].y;
-	var _this = this;
+	var s = this.snake,
+	    o = this.options,
+	    f = this.food,
+	    size = this.options.rectSize,
+	    ctx = this.ctx,
+	    headX = s[0].x,
+	    headY = s[0].y,
+	    _this = this,
 
 	switch (this.dir) {
-		case 'right':
-			headX++;
-			break;
-		case 'left':
-			headX--;
-			break;
-		case 'up':
-			headY--;
-			break;
-		case 'down':
-			headY++;
-			break;
+	    case 'right':
+	        headX++;
+	        break;
+	    case 'left':
+		headX--;
+		break;
+	    case 'up':
+		headY--;
+		break;
+	    case 'down':
+		headY++;
+		break;
 	}
 
 	// erase tail
 	ctx.fillStyle = o.canvasColor;
 	ctx.fillRect(s[s.length - 1].x * size, s[s.length - 1].y * size, size, size);
 
-	var tail = s.pop();
-    tail.x = headX;
-    tail.y = headY;
-    s.unshift(tail);
+	var tail = s.pop(),
+            tail.x = headX,
+            tail.y = headY,
+            s.unshift(tail);
 
-    // add tail to head
+        // add tail to head
 	ctx.fillStyle = o.snakeColor;
-    ctx.fillRect(s[0].x * size, s[0].y * size, size, size);
+        ctx.fillRect(s[0].x * size, s[0].y * size, size, size);
 
-    ctx.fillStyle = o.canvasColor;
+        ctx.fillStyle = o.canvasColor;
 	ctx.fillRect(s[s.length - 1].x * size, s[s.length - 1].y * size, size, size);
 
-    // self collision
-    var j = 1
-    for (; j < s.length; j++) {
-    	if (headX === s[j].x && headY === s[j].y) {
+        // self collision
+        var j = 1
+        for (; j < s.length; j++) {
+    	    if (headX === s[j].x && headY === s[j].y) {
     		this.gameOver();
+            } 
         } 
-    } 
 
-    // food collision;
-    if (headX === f.x && headY === f.y) {
-        var tail = {x: headX, y: headY};
+        // food collision;
+        if (headX === f.x && headY === f.y) {
+            var tail = {x: headX, y: headY};
 
-        this.paintFood();
-      	s.unshift(tail);
-      	this.score++; 
+            this.paintFood();
+      	    s.unshift(tail);
+      	    this.score++; 
 
-      	if (o.speed >= 25) {
-      		o.speed--;	
-      	}
+      	    if (o.speed >= 25) {
+      	        o.speed--;	
+      	    }
 
-    	clearInterval(this.loop);
-      	this.loop = setInterval(function() {
-			_this.repaintSnake();
-		}, _this.options.speed); 
-    }
+    	    clearInterval(this.loop);
+      	    this.loop = setInterval(function() {
+	        _this.repaintSnake();
+	    }, _this.options.speed); 
+        }
 
-    if (o.wallCollision) {
-    	if (headX >= this.w() / size || headX <= -1 || headY >= this.h() / size || headY <= -1) {
+        if (o.wallCollision) {
+    	    if (headX >= this.w() / size || headX <= -1 || headY >= this.h() / size || headY <= -1) {
     		this.gameOver();
-    	}
+    	    }
 	} else {
-    	if (headX >= this.w() / size) {
+    	    if (headX >= this.w() / size) {
     		var tail = s.pop();
     		tail.x = 0;
     		tail.y = headY;
     		s.unshift(tail);
     	}
 	
-	    	if (headY >= this.h() / size) {
-	    		var tail = s.pop();
-	    		tail.x = headX;
-	    		tail.y = 0;
-	    		s.unshift(tail);
-	    	}
+	if (headY >= this.h() / size) {
+	    var tail = s.pop();
+	    
+	    tail.x = headX;
+	    tail.y = 0;
+	    s.unshift(tail);
+	}
 	
-	    	if (headY <= -1) {
-	    		var tail = s.pop();
-	    		tail.x = headX;
-	    		tail.y = this.h() / size;
-	    		s.unshift(tail);
-	    	}
+	if (headY <= -1) {
+	    var tail = s.pop();
+	    tail.x = headX;
+	    tail.y = this.h() / size;
+	    s.unshift(tail);
+	}
 	
-	    	if (headX <= -1) {
-	    		var tail = s.pop();
-	    		tail.x = this.w() / size;
-	    		tail.y = headY;
-	    		s.unshift(tail);
+        if (headX <= -1) {
+	    var tail = s.pop();
+	    tail.x = this.w() / size;
+	    tail.y = headY;
+	    s.unshift(tail);
     	}
     }
-}
+};
 
 Snake.fn.initLoop = function() {
 	var _this = this;
@@ -267,7 +267,7 @@ Snake.fn.initLoop = function() {
 	this.loop = setInterval(function() {
 		_this.repaintSnake();
 	}, _this.options.speed);
-}
+};
 
 Snake.fn.reset = function() {
 	this.dir = 'right';
@@ -279,17 +279,15 @@ Snake.fn.reset = function() {
 	this.paintSnake();
 	this.paintFood();
 	this.initLoop();
-}
+};
 
 Snake.fn.gameOver = function() {
 	clearInterval(this.loop);
 	this.scoreboard.innerHTML = this.score;
 	this.menu.style.zIndex = 999;
-}
+};
 
 var snake = new Snake();
-
-
 
 </script>
 </body>
