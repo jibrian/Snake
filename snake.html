@@ -230,6 +230,7 @@ Snake.fn.repaintSnake = function() {
     	    		this.gameOver();
     	    	}
 	} else {
+<<<<<<< Updated upstream
     		if (headX >= this.w() / size) {
     			var tail = s.pop();
     			tail.x = 0;
@@ -259,6 +260,30 @@ Snake.fn.repaintSnake = function() {
 	    		s.unshift(tail);
     		}
     	}
+=======
+    	if (headX >= this.w() / size) {
+    		var tail = s.pop();
+    		tail.x = 0;
+    		tail.y = headY;
+    		s.unshift(tail);
+    	} else if (headY >= this.h() / size) {
+	    	var tail = s.pop();
+	    	tail.x = headX;
+	    	tail.y = 0;
+	    	s.unshift(tail);
+	    } else if (headY <= -1) {
+    		var tail = s.pop();
+    		tail.x = headX;
+    		tail.y = this.h() / size;
+    		s.unshift(tail);
+    	} else if (headX <= -1) {
+    		var tail = s.pop();
+    		tail.x = this.w() / size;
+    		tail.y = headY;
+	    	s.unshift(tail);
+    	}
+    }
+>>>>>>> Stashed changes
 };
 
 Snake.fn.initLoop = function() {
