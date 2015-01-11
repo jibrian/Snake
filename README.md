@@ -1,4 +1,4 @@
 Snake
 =====
 
-Classic snake game in canvas.
+Classic snake game in JavaScript and Canvas.
