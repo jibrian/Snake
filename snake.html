@@ -97,9 +97,10 @@ Snake.fn.paintCanvas = function() {
 };
 
 Snake.fn.initSnake = function() {
-	var len = this.options.startLength;
-	var s = this.snake = [];
-	var i = len - 1
+	var len = this.options.startLength,
+	    s = this.snake = [],
+	    i = len - 1;
+	    
 	for (; i >= 0; i--) {
 		s.push({x: i, y: 0});
 	}
@@ -107,9 +108,9 @@ Snake.fn.initSnake = function() {
 
 Snake.fn.paintSnake = function() {
 	var size = this.options.rectSize;
-	var s = this.snake;
-	var len = this.snake.length;
-	var i = 0
+	    s = this.snake,
+	    len = this.snake.length,
+	    i = 0;
 
 	for (; i < len; i++) {
 		this.ctx.fillStyle = this.options.snakeColor;	
@@ -131,29 +132,29 @@ Snake.fn.paintFood = function() {
 
 Snake.fn.control = function(e) {
 	var key = e.keyCode,
-	    _this = this;
+	    _this = this,
 	    o = this.options;
 
 	if (key === 37 || key === 38 || key === 39 || key === 40) {
-	    e.preventDefault();
+		e.preventDefault();
 	}
 
 	if(key === 37 && _this.dir !== "right") {
-            setTimeout(function() {
-                _this.dir = "left"; 
-            }, o.speed);
+        	setTimeout(function() {
+                	_this.dir = "left"; 
+            	}, o.speed);
       	} else if(key === 38 && _this.dir !== "down") {
-            setTimeout(function() {
-                _this.dir = "up"; 
-            }, o.speed)
+         	setTimeout(function() {
+                	_this.dir = "up"; 
+            	}, o.speed)
       	} else if(key === 39 && _this.dir !== "left") {
-            setTimeout(function() {
-                _this.dir = "right"; 
-            }, o.speed)
+            	setTimeout(function() {
+                	_this.dir = "right"; 
+            	}, o.speed)
       	} else if(key === 40 && _this.dir !== "up") {
-            setTimeout(function() {
-                _this.dir = "down"; 
-            }, o.speed)
+            	setTimeout(function() {
+                	_this.dir = "down"; 
+            	}, o.speed)
       	}
 };
 
@@ -165,10 +166,10 @@ Snake.fn.repaintSnake = function() {
 	    ctx = this.ctx,
 	    headX = s[0].x,
 	    headY = s[0].y,
-	    _this = this,
+	    _this = this;
 
 	switch (this.dir) {
-	    case 'right':
+	   case 'right':
 	        headX++;
 	        break;
 	    case 'left':
@@ -201,9 +202,9 @@ Snake.fn.repaintSnake = function() {
         // self collision
         var j = 1
         for (; j < s.length; j++) {
-    	    if (headX === s[j].x && headY === s[j].y) {
-    		this.gameOver();
-            } 
+    		if (headX === s[j].x && headY === s[j].y) {
+    			this.gameOver();
+            	} 
         } 
 
         // food collision;
@@ -220,44 +221,44 @@ Snake.fn.repaintSnake = function() {
 
     	    clearInterval(this.loop);
       	    this.loop = setInterval(function() {
-	        _this.repaintSnake();
+	    	_this.repaintSnake();
 	    }, _this.options.speed); 
         }
 
         if (o.wallCollision) {
-    	    if (headX >= this.w() / size || headX <= -1 || headY >= this.h() / size || headY <= -1) {
-    		this.gameOver();
-    	    }
+    		if (headX >= this.w() / size || headX <= -1 || headY >= this.h() / size || headY <= -1) {
+    	    		this.gameOver();
+    	    	}
 	} else {
-    	    if (headX >= this.w() / size) {
-    		var tail = s.pop();
-    		tail.x = 0;
-    		tail.y = headY;
-    		s.unshift(tail);
-    	}
+    		if (headX >= this.w() / size) {
+    			var tail = s.pop();
+    			tail.x = 0;
+    			tail.y = headY;
+    			s.unshift(tail);
+    		}
 	
-	if (headY >= this.h() / size) {
-	    var tail = s.pop();
+		if (headY >= this.h() / size) {
+	    		var tail = s.pop();
 	    
-	    tail.x = headX;
-	    tail.y = 0;
-	    s.unshift(tail);
-	}
+	    		tail.x = headX;
+	    		tail.y = 0;
+	    		s.unshift(tail);
+		}
 	
-	if (headY <= -1) {
-	    var tail = s.pop();
-	    tail.x = headX;
-	    tail.y = this.h() / size;
-	    s.unshift(tail);
-	}
+		if (headY <= -1) {
+	    		var tail = s.pop();
+	    		tail.x = headX;
+	    		tail.y = this.h() / size;
+	    		s.unshift(tail);
+		}
 	
-        if (headX <= -1) {
-	    var tail = s.pop();
-	    tail.x = this.w() / size;
-	    tail.y = headY;
-	    s.unshift(tail);
+        	if (headX <= -1) {
+			var tail = s.pop();
+	    		tail.x = this.w() / size;
+	    		tail.y = headY;
+	    		s.unshift(tail);
+    		}
     	}
-    }
 };
 
 Snake.fn.initLoop = function() {
@@ -292,25 +293,3 @@ var snake = new Snake();
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
